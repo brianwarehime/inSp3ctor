@@ -1,16 +1,12 @@
 #!/usr/bin/env python2.7
 
+from awsauth import S3Auth
 from bs4 import BeautifulSoup
 from colorama import init, Fore, Back, Style
 import argparse
 import requests
 import urllib
 import sys
-
-""" TODO:
-follow redirects
-"""
-
 
 def parse_response(xml_response):
     """ Get the content of the HTML page for the bucket and return
@@ -53,20 +49,27 @@ def check_response(status_code, word, content, s3_type):
     Returns:
         None
     """
-    if status_code == 200:
-        print (Back.GREEN + '[*] ' + s3_type + ' is public [' +
+    if args.s:
+        if status_code == 200:
+            print (Back.GREEN + '[*] ' + s3_type + ' is public [' +
                     word.rstrip() + ']' + Style.RESET_ALL)
-        if args.o:
-            check_object_status(content, word)
-    elif status_code == 403:
-        print (Back.YELLOW + '[!] ' + s3_type + ' is marked private [' +
-                    word.rstrip() + ']' + Style.RESET_ALL)
-    elif status_code == 301:
-        print (Back.RED + '[>] ' + s3_type + ' has a redirect [' +
-                    word.rstrip() + '] Redirected here - [' +
-                    parse_response(content) + ']' + Style.RESET_ALL)
+            if args.o:
+                check_object_status(content, word)
     else:
-        print '[-] ' + s3_type + ' does not exist [' + word.rstrip() + ']'
+        if status_code == 200:
+            print (Back.GREEN + '[*] ' + s3_type + ' is public [' +
+                        word.rstrip() + ']' + Style.RESET_ALL)
+            if args.o:
+                check_object_status(content, word)
+        elif status_code == 403:
+            print (Back.YELLOW + '[!] ' + s3_type + ' is marked private [' +
+                        word.rstrip() + ']' + Style.RESET_ALL)
+        elif status_code == 301:
+            print (Back.RED + '[>] ' + s3_type + ' has a redirect [' +
+                        word.rstrip() + '] Redirected here - [' +
+                        parse_response(content) + ']' + Style.RESET_ALL)
+        else:
+            print '[-] ' + s3_type + ' does not exist or cannot list [' + word.rstrip() + ']'
 
 
 def print_header():
@@ -103,9 +106,15 @@ def bucket_checker(word, s3_type):
         None
     """
     if s3_type == "Object":
-        checker = requests.head(word.rstrip())
+        if args.a:
+            checker = requests.head(word.rstrip(), auth=S3Auth(ACCESS_KEY, SECRET_KEY))
+        else:
+            checker = requests.head(word.rstrip())
     if s3_type == "Bucket":
-        checker = requests.get(word.rstrip())
+        if args.a:
+            checker = requests.get(word.rstrip(), auth=S3Auth(ACCESS_KEY, SECRET_KEY))
+        else:
+            checker = requests.get(word.rstrip())
     response = check_response(checker.status_code, word, checker.content, s3_type)
 
 
@@ -146,8 +155,16 @@ if __name__ == '__main__':
     parser.add_argument('-w', help='Specify explicit wordlist to use for all bucket checking', metavar='wordlist', default='')
     parser.add_argument('-n', help='Specify the root name to use, i.e. google, amazon', metavar='root', default='')
     parser.add_argument('-o', help='Check objects in a public s3 bucket if they are available', action='store_true')
-
+    parser.add_argument('-a', help='Use AWS Credentials to authenticate the request', action='store_true')
+    parser.add_argument('-s', help='Only show buckets/objects that are public in the results', action='store_true')
     args = parser.parse_args()
+
+    if args.a:
+        ACCESS_KEY = ''
+        SECRET_KEY = ''
+        if len(ACCESS_KEY) == 0:
+            print "[!] Need to supply ACCESS_KEY and SECRET_KEY in this file."
+            sys.exit(1)
 
     if not args.n and not args.w:
         print "[!] Need to specify root name to use"
@@ -161,4 +178,3 @@ if __name__ == '__main__':
     if args.n:
         print "[!] Applying permutations to " + args.n
         add_permutations(args.n)
-        
