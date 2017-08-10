@@ -1,6 +1,7 @@
 # inSp3ctor
 AWS S3 Bucket/Object Finder
 
+```
    _      ____     ____     __
   (_)__  / __/__  |_  /____/ /____  ____
  / / _ \_\ \/ _ \_/_ </ __/ __/ _ \/ __/
@@ -9,7 +10,6 @@ AWS S3 Bucket/Object Finder
 
   AWS S3 Bucket Finder
   Brian Warehime @nullsecure
-
 
 [!] Need to specify root name to use
 usage: inSp3ctor.py [-h] [-w wordlist] [-n root] [-o]
@@ -21,6 +21,7 @@ optional arguments:
   -w wordlist  Specify explicit wordlist to use for all bucket checking
   -n root      Specify the root name to use, i.e. google, amazon
   -o           Check objects in a public s3 bucket if they are available
+```
 
 ## How To Use
 
