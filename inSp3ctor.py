@@ -1,12 +1,31 @@
 #!/usr/bin/env python2.7
 
+'''
+   _      ____     ____     __
+  (_)__  / __/__  |_  /____/ /____  ____
+ / / _ \_\ \/ _ \_/_ </ __/ __/ _ \/ __/
+/_/_//_/___/ .__/____/\__/\__/\___/_/
+          /_/
+
+Created by Brian Warehime @nullsecure
+08/10/2017
+
+Tool to search for public bucket/objects for a given name.
+'''
+
+'''
+Todo:
+- Save results to disk
+- Support for reading multiple root names
+'''
+
 from awsauth import S3Auth
 from bs4 import BeautifulSoup
 from colorama import init, Fore, Back, Style
 import argparse
 import requests
-import urllib
 import sys
+import urllib
 
 def parse_response(xml_response):
     """ Get the content of the HTML page for the bucket and return
@@ -49,7 +68,7 @@ def check_response(status_code, word, content, s3_type):
     Returns:
         None
     """
-    if args.s:
+    if args.p:
         if status_code == 200:
             print (Back.GREEN + '[*] ' + s3_type + ' is public [' +
                     word.rstrip() + ']' + Style.RESET_ALL)
@@ -146,17 +165,33 @@ def add_permutations(word):
             bucket_checker("http://" + word + line.rstrip() + ".s3.amazonaws.com","Bucket")
             bucket_checker("http://s3.amazonaws.com/" + word + line.rstrip(),"Bucket")
 
+def batch_checker(inputfile):
+    """ Grabs each line of a given wordlist
+
+    Args:
+        inputfile (str): The name of the text file with bucket names
+
+    Returns:
+        None
+    """
+    with open(inputfile) as f:
+        for word in f:
+            with open('permutations.txt') as f:
+                for line in f:
+                    bucket_checker("http://" + word.rstrip() + line.rstrip() + ".s3.amazonaws.com","Bucket")
+                    bucket_checker("http://s3.amazonaws.com/" + word.rstrip() + line.rstrip(),"Bucket")
 
 if __name__ == '__main__':
 
     print_header()
 
     parser = argparse.ArgumentParser(description='AWS s3 Bucket Permutation Checker')
-    parser.add_argument('-w', help='Specify explicit wordlist to use for all bucket checking', metavar='wordlist', default='')
+    parser.add_argument('-w', help='Specify list of buckets to check from wordlist', metavar='wordlist', default='')
     parser.add_argument('-n', help='Specify the root name to use, i.e. google, amazon', metavar='root', default='')
     parser.add_argument('-o', help='Check objects in a public s3 bucket if they are available', action='store_true')
     parser.add_argument('-a', help='Use AWS Credentials to authenticate the request', action='store_true')
-    parser.add_argument('-s', help='Only show buckets/objects that are public in the results', action='store_true')
+    parser.add_argument('-p', help='Only show buckets/objects that are public in the results', action='store_true')
+    parser.add_argument('-b', help='Specify filename containing words to apply permutations to', metavar='batch', default='')
     args = parser.parse_args()
 
     if args.a:
@@ -166,7 +201,7 @@ if __name__ == '__main__':
             print "[!] Need to supply ACCESS_KEY and SECRET_KEY in this file."
             sys.exit(1)
 
-    if not args.n and not args.w:
+    if not args.n and not args.w and not args.b:
         print "[!] Need to specify root name to use"
         parser.print_help()
         sys.exit(1)
@@ -178,3 +213,7 @@ if __name__ == '__main__':
     if args.n:
         print "[!] Applying permutations to " + args.n
         add_permutations(args.n)
+
+    if args.b:
+        print "[!] Applying permutations to " + args.b
+        batch_checker(args.b)
