@@ -162,8 +162,8 @@ def add_permutations(word):
     """
     with open('permutations.txt') as f:
         for line in f:
-            bucket_checker("http://" + word + line.rstrip() + ".s3.amazonaws.com","Bucket")
-            bucket_checker("http://s3.amazonaws.com/" + word + line.rstrip(),"Bucket")
+            bucket_checker("http://" + word.rstrip() + line.rstrip() + ".s3.amazonaws.com","Bucket")
+            bucket_checker("http://s3.amazonaws.com/" + word.rstrip() + line.rstrip(),"Bucket")
 
 def batch_checker(inputfile):
     """ Grabs each line of a given wordlist
@@ -176,10 +176,7 @@ def batch_checker(inputfile):
     """
     with open(inputfile) as f:
         for word in f:
-            with open('permutations.txt') as f:
-                for line in f:
-                    bucket_checker("http://" + word.rstrip() + line.rstrip() + ".s3.amazonaws.com","Bucket")
-                    bucket_checker("http://s3.amazonaws.com/" + word.rstrip() + line.rstrip(),"Bucket")
+            add_permutations(word)
 
 if __name__ == '__main__':
 
