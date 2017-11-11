@@ -23,6 +23,7 @@ from awsauth import S3Auth
 from bs4 import BeautifulSoup
 from colorama import init, Fore, Back, Style
 import argparse
+import re
 import requests
 import sys
 import urllib
@@ -162,11 +163,12 @@ def add_permutations(word):
     """
     with open('permutations.txt') as f:
         for line in f:
-            bucket_checker("http://" + word + line.rstrip() + ".s3.amazonaws.com","Bucket")
-            bucket_checker("http://s3.amazonaws.com/" + word + line.rstrip(),"Bucket")
+            bucket_checker("http://" + word.rstrip() + line.rstrip() + ".s3.amazonaws.com","Bucket")
+            bucket_checker("http://s3.amazonaws.com/" + word.rstrip() + line.rstrip(),"Bucket")
 
 def batch_checker(inputfile):
-    """ Grabs each line of a given wordlist
+    """ Grabs each line of a given wordlist and run some local
+    permutations if the line contains whitespace or &'s.
 
     Args:
         inputfile (str): The name of the text file with bucket names
@@ -176,10 +178,26 @@ def batch_checker(inputfile):
     """
     with open(inputfile) as f:
         for word in f:
-            with open('permutations.txt') as f:
-                for line in f:
-                    bucket_checker("http://" + word.rstrip() + line.rstrip() + ".s3.amazonaws.com","Bucket")
-                    bucket_checker("http://s3.amazonaws.com/" + word.rstrip() + line.rstrip(),"Bucket")
+            if '&' in word:
+                # We could get away with having '_': {'and'} not being a set, but then
+                # we would have to run another check for if type(i)  is set() and it
+                # would just add way more unnecessary code than it's worth.
+                base_permutations = {'-': {'and', '-'}, '_': {'and'}, '': {'and', ''}}
+                words_run = []
+                for k, v in base_permutations.items():
+                    for i in set(v):
+                        word_fixed = re.sub(r"[^\S\n]+", str(k), word.replace('&', str(i)))
+                        word_fixed = re.sub('-+', '-', word_fixed)
+                        if word_fixed not in words_run:
+                            add_permutations(word_fixed)
+                            words_run.append(word_fixed)
+            elif re.search(r"[^\S\n]+", word):
+                base_permutations = ['-', '_', '']
+                for base_permutation in base_permutations:
+                    word_fixed = re.sub(r"[^\S\n]+", str(base_permutation), word)
+                    add_permutations(word_fixed)
+            else:
+                add_permutations(word)
 
 if __name__ == '__main__':
 
