@@ -134,25 +134,19 @@ def bucket_checker(word, s3_type):
     Returns:
         None
     """
-    # Max lengthfor S3 Bucket names is 63 characters.
-    if len(word) < 64:
-        if s3_type == "Object":
-            if args.a:
-                checker = requests.head(word.rstrip(), auth=S3Auth(ACCESS_KEY,
-                                                                   SECRET_KEY))
-            else:
-                checker = requests.head(word.rstrip())
-        if s3_type == "Bucket":
-            if args.a:
-                checker = requests.get(word.rstrip(), auth=S3Auth(ACCESS_KEY,
-                                                                  SECRET_KEY))
-            else:
-                checker = requests.get(word.rstrip())
-        check_response(checker.status_code, word, checker.content, s3_type)
-    else:
-        print(Back.RED + '[!] ' + word + ' is ' + str(len(word)) +
-              'characters. This an illegal length for a S3 Bucket.' +
-              Style.RESET_ALL)
+    if s3_type == "Object":
+        if args.a:
+            checker = requests.head(word.rstrip(), auth=S3Auth(ACCESS_KEY,
+                                                               SECRET_KEY))
+        else:
+            checker = requests.head(word.rstrip())
+    if s3_type == "Bucket":
+        if args.a:
+            checker = requests.get(word.rstrip(), auth=S3Auth(ACCESS_KEY,
+                                                              SECRET_KEY))
+        else:
+            checker = requests.get(word.rstrip())
+    check_response(checker.status_code, word, checker.content, s3_type)
 
 
 def grab_wordlist(inputfile):
@@ -186,10 +180,17 @@ def add_permutations(word):
     bucket_checker("http://s3.amazonaws.com/" + word.rstrip(), "Bucket")
     with open('permutations.txt') as f:
         for line in f:
-            bucket_checker("http://" + word.rstrip() + line.rstrip() +
-                           ".s3.amazonaws.com", "Bucket")
-            bucket_checker("http://s3.amazonaws.com/" + word.rstrip() +
-                           line.rstrip(), "Bucket")
+            permutation = word.rstrip() + line.rstrip()
+            # Max lengthfor S3 Bucket names is 63 characters.
+            if len(permutation) < 64:
+                bucket_checker("http://" + permutation + ".s3.amazonaws.com",
+                               "Bucket")
+                bucket_checker("http://s3.amazonaws.com/" + permutation,
+                               "Bucket")
+            else:
+                print(Back.RED + '[!] ' + permutation + ' is ' + str(len(word))
+                      + 'characters. This an illegal length for a S3 Bucket.' +
+                      Style.RESET_ALL)
 
 
 def batch_checker(inputfile):
