@@ -11,15 +11,12 @@ Created by Brian Warehime @nullsecure
 08/10/2017
 
 Tool to search for public bucket/objects for a given name.
-'''
 
-'''
 Todo:
 - Save results to disk
 - Support for reading multiple root names
 '''
 
-from awsauth import S3Auth
 from bs4 import BeautifulSoup
 from colorama import init, Fore, Back, Style
 import argparse
@@ -27,6 +24,12 @@ import re
 import requests
 import sys
 import urllib
+
+try:
+    from awsauth import S3Auth
+except ImportError:
+    pass
+
 
 def parse_response(xml_response):
     """ Get the content of the HTML page for the bucket and return
