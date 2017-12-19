@@ -167,6 +167,9 @@ def add_permutations(word):
     Returns:
         None
     """
+    # Check the base word too.
+    bucket_checker("http://" + word.rstrip() + ".s3.amazonaws.com","Bucket")
+    bucket_checker("http://s3.amazonaws.com/" + word.rstrip(),"Bucket")
     with open('permutations.txt') as f:
         for line in f:
             bucket_checker("http://" + word.rstrip() + line.rstrip() + ".s3.amazonaws.com","Bucket")
