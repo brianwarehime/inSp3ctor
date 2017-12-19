@@ -125,17 +125,23 @@ def bucket_checker(word, s3_type):
     Returns:
         None
     """
-    if s3_type == "Object":
-        if args.a:
-            checker = requests.head(word.rstrip(), auth=S3Auth(ACCESS_KEY, SECRET_KEY))
-        else:
-            checker = requests.head(word.rstrip())
-    if s3_type == "Bucket":
-        if args.a:
-            checker = requests.get(word.rstrip(), auth=S3Auth(ACCESS_KEY, SECRET_KEY))
-        else:
-            checker = requests.get(word.rstrip())
-    response = check_response(checker.status_code, word, checker.content, s3_type)
+    # Max lengthfor S3 Bucket names is 63 characters.
+    if len(word) < 64:
+        if s3_type == "Object":
+            if args.a:
+                checker = requests.head(word.rstrip(), auth=S3Auth(ACCESS_KEY, SECRET_KEY))
+            else:
+                checker = requests.head(word.rstrip())
+        if s3_type == "Bucket":
+            if args.a:
+                checker = requests.get(word.rstrip(), auth=S3Auth(ACCESS_KEY, SECRET_KEY))
+            else:
+                checker = requests.get(word.rstrip())
+        response = check_response(checker.status_code, word, checker.content, s3_type)
+    else:
+        print(Back.RED + '[!] ' + word + ' is ' + str(len(word)) +
+              'characters. This an illegal length for a S3 Bucket.' +
+              Style.RESET_ALL)
 
 
 def grab_wordlist(inputfile):
