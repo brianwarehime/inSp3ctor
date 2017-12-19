@@ -177,18 +177,30 @@ def batch_checker(inputfile):
         None
     """
     with open(inputfile) as f:
+        bad_chars = re.compile(r"[.*$<,>?!'()\"\\/]")
+        sub_chars = re.compile(r"[&\+]")
         for word in f:
-            if '&' in word:
+            if bad_chars.search(word):
+                word = bad_chars.sub('', word)
+            if sub_chars.search(word):
                 # We could get away with having '_': {'and'} not being a set, but then
                 # we would have to run another check for if type(i)  is set() and it
                 # would just add way more unnecessary code than it's worth.
                 base_permutations = {'-': {'and', '-'}, '_': {'and'}, '': {'and', ''}}
+                # '+' can mean either 'and' or 'plus', account for both.
+                if '+' in word:
+                    base_permutations.update({'-': {'plus', '-'}, '_': {'plus'}, '': {'plus', ''}})
                 words_run = []
                 for k, v in base_permutations.items():
                     for i in set(v):
-                        word_fixed = re.sub(r"[^\S\n]+", str(k), word.replace('&', str(i)))
-                        word_fixed = re.sub('-+', '-', word_fixed)
-                        if word_fixed not in words_run:
+                        word_fixed = re.sub(r"[^\S\n]+", str(k), sub_chars.sub(str(i), word)).rstrip()
+                        if '-+' in word_fixed:
+                            word_fixed = re.sub('-+', '-', word_fixed)
+                        if '---' in word_fixed:
+                            word_fixed = re.sub('---', '-', word_fixed)
+                        if 'and' not in i and word_fixed.endswith(i):
+                            word_fixed = word_fixed.rstrip(i)
+                        if word_fixed and word_fixed not in words_run:
                             add_permutations(word_fixed)
                             words_run.append(word_fixed)
             elif re.search(r"[^\S\n]+", word):
