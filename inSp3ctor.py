@@ -20,6 +20,7 @@ Todo:
 import argparse
 from bs4 import BeautifulSoup
 from colorama import Fore, Back, Style
+import os
 import re
 import requests
 import sys
@@ -28,6 +29,8 @@ try:
     from awsauth import S3Auth
 except ImportError:
     pass
+
+from datetime import datetime
 
 
 def parse_response(xml_response):
@@ -76,6 +79,7 @@ def check_response(status_code, word, content, s3_type):
     Returns:
         None
     """
+    redirect = ''
     if args.p:
         if status_code == 200:
             print(Back.GREEN + '[*] ' + s3_type + ' is public [' +
@@ -92,12 +96,22 @@ def check_response(status_code, word, content, s3_type):
             print(Back.YELLOW + '[!] ' + s3_type + ' is marked private [' +
                   word.rstrip() + ']' + Style.RESET_ALL)
         elif status_code == 301:
+            redirect = parse_response(content)
             print(Back.RED + '[>] ' + s3_type + ' has a redirect [' +
                   word.rstrip() + '] Redirected here - [' +
-                  parse_response(content) + ']' + Style.RESET_ALL)
+                  redirect + ']' + Style.RESET_ALL)
         else:
             print('[-] ' + s3_type + ' does not exist or cannot list [' +
                   word.rstrip() + ']')
+    if outfile:
+        write_header = False
+        if not os.path.isfile(outfile):
+            write_header = True
+        with open(outfile, 'a') as f:
+            if write_header:
+                f.write('status_code,url,bucket_type,redirected_url\n')
+            f.write(str(status_code) + ',' + word.encode('utf-8') + ',' +
+                    s3_type + ',' + redirect + "\n")
 
 
 def print_header():
@@ -259,10 +273,13 @@ if __name__ == '__main__':
     parser.add_argument('-w', help='Specify list of buckets to check from wordlist', metavar='wordlist', default='')
     parser.add_argument('-n', help='Specify the root name to use, i.e. google, amazon', metavar='root', default='')
     parser.add_argument('-o', help='Check objects in a public s3 bucket if they are available', action='store_true')
+    parser.add_argument('-c', help='Write results to csv', action='store_true')
     parser.add_argument('-a', help='Use AWS Credentials to authenticate the request', action='store_true')
     parser.add_argument('-p', help='Only show buckets/objects that are public in the results', action='store_true')
     parser.add_argument('-b', help='Specify filename containing words to apply permutations to', metavar='batch', default='')
     args = parser.parse_args()
+
+    outfile = ''
 
     if args.a:
         ACCESS_KEY = ''
@@ -278,12 +295,21 @@ if __name__ == '__main__':
 
     if args.w:
         print("[!] Reading s3 bucket names from " + args.w)
+        if args.c:
+            outfile = str(os.path.splitext(os.path.basename(args.w))[0] + '-' +
+                          datetime.now().strftime("%H-%M-%S") + ".csv")
         grab_wordlist(args.w)
 
     if args.n:
         print("[!] Applying permutations to " + args.n)
+        if args.c:
+            outfile = str(args.n + '-' + datetime.now().strftime("%H-%M-%S") +
+                          ".csv")
         add_permutations(args.n)
 
     if args.b:
         print("[!] Applying permutations to " + args.b)
+        if args.c:
+            outfile = str(os.path.splitext(os.path.basename(args.b))[0] + '-' +
+                          datetime.now().strftime("%H-%M-%S") + ".csv")
         batch_checker(args.b)
