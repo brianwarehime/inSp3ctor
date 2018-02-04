@@ -59,7 +59,7 @@ def check_object_status(xml_response, site):
     y = BeautifulSoup(xml_response, "html.parser")
     object_keys = y.findAll('key')
     for key in object_keys:
-        bucket_checker(site + "/" + key.get_text(), "Object")
+        bucket_checker(site.rstrip() + "/" + key.get_text(), "Object")
 
 
 def check_response(status_code, word, content, s3_type):
@@ -161,7 +161,7 @@ def grab_wordlist(inputfile):
     """
     with open(inputfile) as f:
         for line in f:
-            bucket_checker(line, "Bucket")
+            bucket_checker(line.rstrip(), "Bucket")
 
 
 def add_permutations(word):
