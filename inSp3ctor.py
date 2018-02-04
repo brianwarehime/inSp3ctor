@@ -110,7 +110,7 @@ def check_response(status_code, word, content, s3_type):
         with open(outfile, 'a') as f:
             if write_header:
                 f.write('status_code,url,bucket_type,redirected_url\n')
-            f.write(str(status_code) + ',' + word.encode('utf-8') + ',' +
+            f.write(str(status_code) + ',' + str(word.encode('utf-8')) + ',' +
                     s3_type + ',' + redirect + "\n")
 
 
