@@ -205,7 +205,7 @@ def batch_checker(inputfile):
         None
     """
     with open(inputfile) as f:
-        bad_chars = re.compile(r"[.*$<,>?!'()\"\\/]")
+        bad_chars = re.compile(r"[.*$<,>?!'()\"\\/]|[-+$]")
         sub_chars = re.compile(r"[&\+]")
         for word in f:
             if bad_chars.search(word):
