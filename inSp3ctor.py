@@ -52,6 +52,7 @@ def check_object_status(xml_response, site):
 
     Args:
         xml_response (str): The HTML content from an s3 bucket
+        site (str): URL of the s3 bucket
 
     Returns:
         Object status
