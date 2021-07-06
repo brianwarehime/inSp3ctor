@@ -210,7 +210,10 @@ def grab_wordlist(inputfile):
     """
     with open(inputfile) as f:
         for line in f:
-            bucket_checker(line.rstrip(), "Bucket")
+            bucket_checker("http://" + line.rstrip() +
+                           ".s3.amazonaws.com", "Bucket")
+            bucket_checker("http://s3.amazonaws.com/" +
+                           line.rstrip(), "Bucket")
 
 
 def add_permutations(word):
