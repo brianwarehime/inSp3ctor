@@ -2,17 +2,17 @@
 AWS S3 Bucket/Object Finder
 
 ```
-   _      ____     ____     __
-  (_)__  / __/__  |_  /____/ /____  ____
- / / _ \_\ \/ _ \_/_ </ __/ __/ _ \/ __/
-/_/_//_/___/ .__/____/\__/\__/\___/_/
-          /_/
+            _____      _____      __
+    (_)___ / ___/____ |__  /_____/ /_____  _____
+   / / __ \__ \/ __ \ /_ </ ___/ __/ __ \/ ___/
+  / / / / /__/ / /_/ /__/ / /__/ /_/ /_/ / /
+ /_/_/ /_/____/ .___/____/\___/\__/\____/_/
+             /_/
 
   AWS S3 Bucket Finder
   Brian Warehime @nullsecure
 
-
-usage: inSp3ctor.py [-h] [-w wordlist] [-n root] [-o] [-a] [-p] [-b batch]
+usage: inSp3ctor.py [-h] [-w wordlist] [-n root] [-o] [-c] [-a] [-p] [-b batch] [-j] [-t] [-v]
 
 AWS s3 Bucket Permutation Checker
 
@@ -21,9 +21,13 @@ optional arguments:
   -w wordlist  Specify list of buckets to check from wordlist
   -n root      Specify the root name to use, i.e. google, amazon
   -o           Check objects in a public s3 bucket if they are available
+  -c           Write results to csv
   -a           Use AWS Credentials to authenticate the request
   -p           Only show buckets/objects that are public in the results
   -b batch     Specify filename containing words to apply permutations to
+  -j           JSON output
+  -t           Do not print banner
+  -v           Verbose
 ```
 
 ## How To Use
@@ -34,35 +38,7 @@ You can either use a pre-made wordlist containing all the buckets/objects you wa
 
 If you wanted to look for any information for `example`, you'd run `python inSp3ctor.py -n example`, you can supply the argument `-o` if you want to check the status of the objects contained in the public buckets.
 
-```
-   _      ____     ____     __
-  (_)__  / __/__  |_  /____/ /____  ____
- / / _ \_\ \/ _ \_/_ </ __/ __/ _ \/ __/
-/_/_//_/___/ .__/____/\__/\__/\___/_/
-          /_/
-
-  AWS S3 Bucket Finder
-  Brian Warehime @nullsecure
-
-
-[!] Applying permutations to example
-[!] Bucket is marked private [http://example-dev.s3.amazonaws.com]
-[>] Bucket has a redirect [http://s3.amazonaws.com/example-dev] Redirected here - [example-dev.s3.amazonaws.com]
-[-] Bucket does not exist or cannot list [http://example-prod.s3.amazonaws.com]
-[-] Bucket does not exist or cannot list [http://s3.amazonaws.com/example-prod]
-[-] Bucket does not exist or cannot list [http://example-production.s3.amazonaws.com]
-[-] Bucket does not exist or cannot list [http://s3.amazonaws.com/example-production]
-[-] Bucket does not exist or cannot list [http://example-tmp.s3.amazonaws.com]
-[-] Bucket does not exist or cannot list [http://s3.amazonaws.com/example-tmp]
-[!] Bucket is marked private [http://example-media.s3.amazonaws.com]
-[>] Bucket has a redirect [http://s3.amazonaws.com/example-media] Redirected here - [example-media.s3.amazonaws.com]
-[-] Bucket does not exist or cannot list [http://example-tmp-logs.s3.amazonaws.com]
-[-] Bucket does not exist or cannot list [http://s3.amazonaws.com/example-tmp-logs]
-[!] Bucket is marked private [http://example-logs.s3.amazonaws.com]
-[!] Bucket is marked private [http://s3.amazonaws.com/example-logs]
-[-] Bucket does not exist or cannot list [http://example-splunk.s3.amazonaws.com]
-[-] Bucket does not exist or cannot list [http://s3.amazonaws.com/example-splunk]```
-
+![](images/example.png)
 
 If you want to do lookups on a batch of companies, you can specify `-b` and supply a wordlist file, with a name on each line. The tool will then run through each line and lookup each name along with the list of permutations consecutively. I would recommend specifying `-p` to only output the public buckets/objects.
 
