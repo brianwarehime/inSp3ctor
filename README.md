@@ -42,5 +42,33 @@ If you wanted to look for any information for `example`, you'd run `python inSp3
 
 If you want to do lookups on a batch of companies, you can specify `-b` and supply a wordlist file, with a name on each line. The tool will then run through each line and lookup each name along with the list of permutations consecutively. I would recommend specifying `-p` to only output the public buckets/objects.
 
+Json output example
+
+`python3 inSp3ctor.py -j -t -o -n example | jq`
+
+```json
+{
+  "Bucket": {
+    "private": [
+      "http://example.s3.amazonaws.com",
+      "http://s3.amazonaws.com/example",
+      "http://example-production.s3.amazonaws.com"
+    ],
+    "public": [
+      "http://example-dev.s3.amazonaws.com"
+    ],
+    "redirect": [
+      "http://s3.amazonaws.com/example-dev -> http://example-dev.s3.amazonaws.com",
+      "http://s3.amazonaws.com/example-production -> http://example-production.s3.amazonaws.com"
+    ],
+    "no_exist": [
+      "http://example-prod.s3.amazonaws.com",
+      "http://s3.amazonaws.com/example-prod"
+    ]
+  },
+  "Object": {}
+}
+```
+
 ## TODO
 - Right now, the AWS credentials are hardcoded in the python script, which should be handled through the `/.aws` credential file.

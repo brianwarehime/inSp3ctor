@@ -34,7 +34,7 @@ except ImportError:
 
 from datetime import datetime
 
-results = dict()
+results = dict(Bucket={}, Object={})
 
 
 class bcolors:
@@ -107,9 +107,10 @@ def check_response(status_code, word, content, s3_type):
             log_objects(word.rstrip(), s3_type, 'private')
         elif status_code == 301:
             redirect = parse_response(content)
-            log_objects(word.rstrip(), s3_type, 'redirect', redirect)
+            log_objects(word.rstrip(), s3_type,
+                        'redirect', f"http://{redirect}")
         else:
-            log_objects(word.rstrip(), s3_type, 'no_exist', redirect)
+            log_objects(word.rstrip(), s3_type, 'no_exist')
     if outfile:
         write_header = False
         if not os.path.isfile(outfile):
