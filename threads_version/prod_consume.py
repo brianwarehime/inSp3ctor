@@ -1,14 +1,16 @@
 import requests as req
 import json
+import progressbar
 
 from bs4 import BeautifulSoup
 from queue import Empty, Queue
-from threading import Thread
+from threading import Thread, Semaphore
 
 max_consumers = 10
 results = dict(Bucket={}, Object={})
-files = []
-verbose = True
+urls: int
+sem = Semaphore(0)
+verbose: bool = True
 
 
 def check_object_status(xml_response, site):
@@ -53,7 +55,7 @@ def bucket_checker(word, s3_type):
 
 
 def produce(queue: Queue):
-    with open('bucket_names.txt', 'r') as fb:
+    with open('buckets_names.txt', 'r') as fb:
         with open('file_names.txt', 'r') as ff:
             buckets = fb.readlines()
             files = ff.readlines()
@@ -65,6 +67,8 @@ def produce(queue: Queue):
                     ("Object", f"http://s3.amazonaws.com/{l}/{f}")) for f in files]
                 [queue.put(
                     ("Object", f"http://{l}.s3.amazonaws.com/{f}")) for f in files]
+    global urls
+    urls = queue.qsize()
 
 
 def consume(queue: Queue):
@@ -72,9 +76,8 @@ def consume(queue: Queue):
         try:
             s3_type, url = queue.get(timeout=0.1)
             queue.task_done()
-            if verbose:
-                print(url)
             bucket_checker(url, s3_type)
+            sem.release()
         except Empty:
             pass
     return
@@ -88,7 +91,7 @@ def remove_repeated(_results: dict):
     return _results
 
 
-def main():
+def main(verbose):
     q = Queue()
     produce(q)
 
@@ -97,11 +100,25 @@ def main():
         consumer = Thread(target=consume, args=(q,))
         consumer.start()
         consumers.append(consumer)
+    if verbose:
+        global urls
+        Thread(target=progress_bar, args=(urls,)).start()
 
     for consumer in consumers:
         consumer.join()
+    print_results()
+
+
+def progress_bar(max):
+    with progressbar.ProgressBar(max_value=max) as bar:
+        for i in range(max):
+            sem.acquire()
+            bar.update(i)
+
+
+def print_results():
+    print(json.dumps(remove_repeated(results)))
 
 
 if __name__ == '__main__':
-    main()
-    print(json.dumps(remove_repeated(results)))
+    main(verbose)

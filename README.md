@@ -34,6 +34,8 @@ optional arguments:
 
 You can either use a pre-made wordlist containing all the buckets/objects you want to check or supply a root name, and let inSp3ctor add in common permutations to the bucket name to find different variations. 
 
+More speed? Check the [thread_verison!](threads_version/)
+
 ### Example
 
 If you wanted to look for any information for `example`, you'd run `python inSp3ctor.py -n example`, you can supply the argument `-o` if you want to check the status of the objects contained in the public buckets.
